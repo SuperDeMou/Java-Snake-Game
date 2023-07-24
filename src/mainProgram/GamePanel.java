@@ -1,7 +1,11 @@
 package mainProgram;
 import pressKey.MyKeyAdapter;
+import score.ScoreRegister;
+
 import java.awt.*;
 import java.awt.event.*;
+import java.io.IOException;
+
 import javax.swing.*;
 import java.util.Random;
 
@@ -22,7 +26,7 @@ public class GamePanel extends JPanel implements ActionListener{
     boolean running = false;
     Timer timer;
     Random random;
-
+    
     GamePanel(){
     random = new Random();
     this.setPreferredSize(new Dimension(SCREEN_WIDTH, SCREEN_HEIGHT));
@@ -31,6 +35,7 @@ public class GamePanel extends JPanel implements ActionListener{
     this.addKeyListener(new MyKeyAdapter(this));
     startGame();
     }
+    
 
     public char getDirection() {
         return this.direction;
@@ -47,9 +52,13 @@ public class GamePanel extends JPanel implements ActionListener{
 
     }public void paintComponent(Graphics g){
         super.paintComponent(g);
-        draw(g);
+        try {
+            draw(g);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
-    }public void draw(Graphics g){
+    }public void draw(Graphics g) throws IOException{
         if(running){
             g.setColor(Color.red);
             g.fillOval(appleX,appleY, UNIT_SIZE,UNIT_SIZE);
@@ -126,7 +135,12 @@ public class GamePanel extends JPanel implements ActionListener{
             timer.stop();
         }
 
-    }public void gameOver(Graphics g){
+    }public void gameOver(Graphics g) throws IOException{
+        int maxScore;
+        ScoreRegister scoreRegister = new ScoreRegister(applesEaten);
+        scoreRegister.printMaxScore();
+        maxScore = scoreRegister.getMaxScore();
+        
         g.setColor(Color.red);
         g.setFont(new Font("Ink Free", Font.BOLD, 75));
         FontMetrics metrics1 = getFontMetrics(g.getFont());
@@ -135,14 +149,16 @@ public class GamePanel extends JPanel implements ActionListener{
         g.setFont(new Font("Ink Free", Font.BOLD, 40));
         FontMetrics metrics2 = getFontMetrics(g.getFont());
         g.drawString("Score: " + applesEaten, (SCREEN_WIDTH - metrics2.stringWidth("Score: " + applesEaten))/2, g.getFont().getSize());
+        FontMetrics metrics3 = getFontMetrics(g.getFont());
+        g.drawString("Max Score: " + maxScore,(SCREEN_WIDTH - metrics3.stringWidth("Max Score"))/2, SCREEN_HEIGHT/2 + 75);
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
         if(running){
             move();
-            checkApple();
             checkCollisions();
+            checkApple();
         }
         repaint();
     }
